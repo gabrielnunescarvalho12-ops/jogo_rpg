@@ -1953,29 +1953,447 @@ kbd {
   }
 }
 
-/* Telas Muito Pequenas e Mobile (<= 768px) */
+/* ==========================================================================
+   CONTROLES TOUCH VIRTUAIS PARA DISPOSITIVOS MÓVEIS (VIRTUAL D-PAD & AÇÕES)
+   ========================================================================== */
+
+.mobile-touch-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 16px;
+  pointer-events: none;
+  z-index: 45;
+  transition: opacity 0.3s ease;
+}
+
+/* Oculto por padrão em computadores desktop com mouse */
+.mobile-touch-controls {
+  display: none;
+}
+
+/* Exibe em telas touch ou telas menores que 1024px */
+.is-mobile-device .mobile-touch-controls,
+@media (max-width: 1024px), (pointer: coarse) {
+  .mobile-touch-controls {
+    display: flex;
+  }
+}
+
+/* 1. D-PAD VIRTUAL (MOVIMENTAÇÃO) */
+.virtual-dpad {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: rgba(14, 16, 23, 0.68);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px;
+  border-radius: 50%;
+  border: 2px solid var(--parchment-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75), 0 0 12px rgba(245, 200, 66, 0.2);
+  touch-action: none;
+  user-select: none;
+}
+
+.dpad-middle-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dpad-center {
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, #2d261e, #13100c);
+  border-radius: 50%;
+  border: 1px solid #4a3a24;
+}
+
+.dpad-btn {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(180deg, #2b231b 0%, #15110d 100%);
+  border: 1px solid var(--parchment-border);
+  border-radius: 8px;
+  color: var(--gold-primary);
+  font-size: 1.15rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: transform 0.1s, background 0.1s, border-color 0.1s;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dpad-btn:active, .dpad-btn.active {
+  transform: scale(0.92);
+  background: linear-gradient(180deg, #d49b0e 0%, #7d5904 100%);
+  color: #fff;
+  border-color: #ffd700;
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+
+/* 2. BOTÕES DE AÇÃO TOUCH (DIREITA) */
+.virtual-actions {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  touch-action: none;
+  user-select: none;
+}
+
+.touch-action-btn {
+  border-radius: 50%;
+  border: 2px solid var(--parchment-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+  transition: transform 0.15s, box-shadow 0.15s;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.touch-btn-attack {
+  width: 66px;
+  height: 66px;
+  background: radial-gradient(circle at 35% 35%, #e74c3c 0%, #922b21 70%, #5c140d 100%);
+  border-color: #ff6b6b;
+  box-shadow: 0 0 18px rgba(231, 76, 60, 0.65), 0 4px 10px rgba(0, 0, 0, 0.8);
+}
+
+.touch-btn-attack:active {
+  transform: scale(0.92);
+  box-shadow: 0 0 24px rgba(255, 71, 87, 0.9);
+}
+
+.touch-btn-interact {
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle at 35% 35%, #f5c842 0%, #b8860b 70%, #5c4104 100%);
+  border-color: #ffd700;
+  box-shadow: 0 0 14px var(--gold-glow), 0 3px 8px rgba(0, 0, 0, 0.7);
+}
+
+.touch-btn-interact:active {
+  transform: scale(0.92);
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+.touch-btn-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.touch-btn-attack .touch-btn-icon {
+  font-size: 1.75rem;
+}
+
+.touch-btn-label {
+  font-family: var(--font-title);
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+  margin-top: 1px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   ADAPTAÇÃO RESPONSIVA PARA SMARTPHONES E TELAS PEQUENAS (<= 768px)
+   ========================================================================== */
+
 @media (max-width: 768px) {
+  :root {
+    --card-width: 104px;
+    --card-height: 154px;
+    --hud-top-height: auto;
+    --hud-bottom-height: auto;
+  }
+
+  body, html {
+    touch-action: manipulation;
+    overscroll-behavior: none;
+  }
+
+  /* BARRA SUPERIOR MOBILE */
   .top-hud {
     flex-wrap: wrap;
+    padding: 6px 10px;
+    gap: 6px;
     height: auto;
-    padding: 6px 8px;
+  }
+
+  .hero-profile {
+    min-width: unset;
+    gap: 8px;
+  }
+
+  .hero-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+
+  .hero-name {
+    font-size: 0.85rem;
+  }
+
+  .hero-class {
+    display: none;
+  }
+
+  .stats-group {
+    gap: 5px;
+  }
+
+  .stat-badge {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+  }
+
+  .top-actions {
+    margin-left: auto;
+    gap: 4px;
+  }
+
+  .btn-hud {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .btn-hud .btn-label {
+    display: none;
   }
 
   .vitals-group {
-    order: 3;
+    order: 4;
     width: 100%;
     max-width: 100%;
+    gap: 8px;
+    margin-top: 2px;
   }
 
+  .vital-item {
+    gap: 1px;
+  }
+
+  .vital-label {
+    font-size: 0.65rem;
+  }
+
+  .bar-container {
+    height: 10px;
+  }
+
+  /* BARRA INFERIOR MOBILE */
   .bottom-hud {
     display: flex;
     flex-direction: column;
     height: auto;
-    max-height: 40vh;
+    max-height: 38vh;
+    padding: 6px 8px;
+    gap: 6px;
     overflow-y: auto;
   }
 
+  .dice-section {
+    flex-direction: row;
+    width: 100%;
+    padding: 4px 8px;
+    gap: 10px;
+  }
+
+  .dice-wrapper {
+    width: 48px;
+    height: 48px;
+    margin-top: 0;
+  }
+
+  .dice-3d {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dice-face {
+    width: 38px;
+    height: 38px;
+    padding: 3px;
+    border-radius: 6px;
+  }
+
+  .face-1 { transform: rotateY(0deg) translateZ(19px); }
+  .face-2 { transform: rotateY(90deg) translateZ(19px); }
+  .face-3 { transform: rotateY(180deg) translateZ(19px); }
+  .face-4 { transform: rotateY(-90deg) translateZ(19px); }
+  .face-5 { transform: rotateX(90deg) translateZ(19px); }
+  .face-6 { transform: rotateX(-90deg) translateZ(19px); }
+
+  .pip {
+    width: 6px;
+    height: 6px;
+  }
+
+  .face-1 .pip {
+    width: 9px;
+    height: 9px;
+  }
+
+  .dice-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .btn-roll-dice {
+    flex: 1;
+    padding: 4px 6px;
+    font-size: 0.76rem;
+  }
+
+  .cards-section {
+    padding: 4px 6px;
+  }
+
   .cards-hand {
+    padding: 4px 2px 6px 2px;
+    gap: 8px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
+  }
+
+  .rpg-card {
+    scroll-snap-align: center;
+  }
+
+  .rpg-card .card-art-box {
+    height: 48px;
+    font-size: 1.6rem;
+  }
+
+  .rpg-card .card-title {
+    font-size: 0.68rem;
+  }
+
+  .rpg-card .card-desc {
+    display: none;
+  }
+
+  .combat-status-section {
+    display: none;
+  }
+
+  /* MODAIS MOBILE */
+  .menu-parchment {
+    padding: 24px 16px;
+    width: 95%;
+  }
+
+  .game-title {
+    font-size: 2rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+  }
+
+  .inventory-window {
+    width: 96vw;
+    height: 94vh;
+  }
+
+  .inventory-content-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .character-sheet-col {
+    max-height: 180px;
+    padding: 10px;
+    border-right: none;
+    border-bottom: 2px solid var(--parchment-border);
+  }
+
+  .avatar-hero-display {
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+
+  .big-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 2rem;
+  }
+
+  .equipment-slots-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .equipment-slot {
+    padding: 4px 2px;
+  }
+
+  .slot-icon {
+    font-size: 1.3rem;
+  }
+
+  .slot-item-name {
+    font-size: 0.6rem;
+  }
+
+  .inventory-col {
+    padding: 10px;
+  }
+
+  .inventory-tabs {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .inv-tab {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+    grid-auto-rows: 46px;
+    gap: 6px;
+  }
+
+  .inv-item-slot {
+    font-size: 1.3rem;
+  }
+
+  .item-inspect-panel {
+    height: 120px;
+    padding: 8px 10px;
+  }
+
+  .dialog-window, .chest-window, .credits-window, .pause-window {
+    width: 92vw;
+    padding: 18px 14px;
   }
 }

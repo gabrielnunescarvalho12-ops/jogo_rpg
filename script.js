@@ -1647,6 +1647,11 @@ class Game {
     this.renderCardsHand();
     this.updateHUD();
 
+    // Detecção e ativação de controles mobile / touch
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024) {
+      document.getElementById('game-app').classList.add('is-mobile-device');
+    }
+
     // Inicia loop
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.gameLoop(t));
@@ -1748,6 +1753,98 @@ class Game {
 
     document.getElementById('btn-retry-game').addEventListener('click', () => location.reload());
     document.getElementById('btn-victory-restart').addEventListener('click', () => location.reload());
+
+    // 5. CONTROLES TOUCH MOBILE (VIRTUAL D-PAD E AÇÕES TOUCH)
+    const setupTouchBtn = (elementId, keyChar) => {
+      const btn = document.getElementById(elementId);
+      if (!btn) return;
+
+      const startMove = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.keys[keyChar] = true;
+        btn.classList.add('active');
+      };
+
+      const stopMove = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.keys[keyChar] = false;
+        btn.classList.remove('active');
+      };
+
+      btn.addEventListener('touchstart', startMove, { passive: false });
+      btn.addEventListener('touchend', stopMove, { passive: false });
+      btn.addEventListener('touchcancel', stopMove, { passive: false });
+      btn.addEventListener('mousedown', startMove);
+      btn.addEventListener('mouseup', stopMove);
+      btn.addEventListener('mouseleave', stopMove);
+    };
+
+    setupTouchBtn('btn-touch-up', 'w');
+    setupTouchBtn('btn-touch-down', 's');
+    setupTouchBtn('btn-touch-left', 'a');
+    setupTouchBtn('btn-touch-right', 'd');
+
+    // Botões de Ação Touch
+    const btnTouchAttack = document.getElementById('btn-touch-attack');
+    if (btnTouchAttack) {
+      btnTouchAttack.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.confirmAttack();
+      }, { passive: false });
+      btnTouchAttack.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.confirmAttack();
+      });
+    }
+
+    const btnTouchInteract = document.getElementById('btn-touch-interact');
+    if (btnTouchInteract) {
+      btnTouchInteract.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleInteraction();
+      }, { passive: false });
+      btnTouchInteract.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.handleInteraction();
+      });
+    }
+
+    // Touch no Canvas (Mira de toque e rolagem de dado com toque)
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (this.state !== 'PLAYING') return;
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouse.screenX = touch.clientX - rect.left;
+        this.mouse.screenY = touch.clientY - rect.top;
+        this.mouse.worldX = this.mouse.screenX + this.camera.x;
+        this.mouse.worldY = this.mouse.screenY + this.camera.y;
+
+        this.updateHoveredEnemy();
+
+        // Se tocou no chão vazio sem inimigo e o dado ainda não foi rolado, rola o dado
+        if (!this.hoveredEnemy && this.dice.currentValue === null) {
+          this.dice.roll();
+        }
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      if (this.state !== 'PLAYING') return;
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouse.screenX = touch.clientX - rect.left;
+        this.mouse.screenY = touch.clientY - rect.top;
+        this.mouse.worldX = this.mouse.screenX + this.camera.x;
+        this.mouse.worldY = this.mouse.screenY + this.camera.y;
+        this.updateHoveredEnemy();
+      }
+    }, { passive: true });
 
     document.getElementById('btn-dialog-close').addEventListener('click', () => this.hideModal('dialog-modal'));
     document.getElementById('btn-collect-chest').addEventListener('click', () => this.hideModal('chest-modal'));

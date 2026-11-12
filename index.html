@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0b0e">
   <title>A Lenda dos Seis Lados - RPG 2D de Dados e Cartas</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +44,7 @@
           <div class="ctrl-chip"><kbd>Botão Direito</kbd> Atacar Inimigo</div>
           <div class="ctrl-chip"><kbd>ESPAÇO</kbd> Inventário</div>
           <div class="ctrl-chip"><kbd>E</kbd> Interagir (Baús / NPCs)</div>
+          <div class="ctrl-chip"><kbd>📱 Mobile</kbd> Controles Touch na Tela</div>
         </div>
       </div>
     </div>
@@ -158,6 +163,32 @@
         <!-- Dica de Interação de Objeto (Aparece perto de Baú ou NPC) -->
         <div id="interaction-prompt" class="interaction-prompt hidden">
           <span class="key-badge">E</span> <span id="interaction-label">Abrir Baú do Tesouro</span>
+        </div>
+
+        <!-- CONTROLES TOUCH VIRTUAIS PARA DISPOSITIVOS MÓVEIS -->
+        <div id="mobile-touch-controls" class="mobile-touch-controls">
+          <!-- D-PAD VIRTUAL (MOVIMENTAÇÃO) -->
+          <div class="virtual-dpad" id="virtual-dpad">
+            <button class="dpad-btn dpad-up" id="btn-touch-up" data-dir="w" aria-label="Mover para Cima">▲</button>
+            <div class="dpad-middle-row">
+              <button class="dpad-btn dpad-left" id="btn-touch-left" data-dir="a" aria-label="Mover para Esquerda">◀</button>
+              <div class="dpad-center"></div>
+              <button class="dpad-btn dpad-right" id="btn-touch-right" data-dir="d" aria-label="Mover para Direita">▶</button>
+            </div>
+            <button class="dpad-btn dpad-down" id="btn-touch-down" data-dir="s" aria-label="Mover para Baixo">▼</button>
+          </div>
+
+          <!-- BOTÕES DE AÇÃO TOUCH (INTERAGIR & ATACAR) -->
+          <div class="virtual-actions" id="virtual-actions">
+            <button class="touch-action-btn touch-btn-interact" id="btn-touch-interact" title="Interagir [E]">
+              <span class="touch-btn-icon">✋</span>
+              <span class="touch-btn-label">Ação [E]</span>
+            </button>
+            <button class="touch-action-btn touch-btn-attack" id="btn-touch-attack" title="Confirmar Ataque no Inimigo">
+              <span class="touch-btn-icon">⚔️</span>
+              <span class="touch-btn-label">Atacar</span>
+            </button>
+          </div>
         </div>
       </main>
 
