@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Lenda dos Seis Lados - RPG 2D de Dados e Cartas</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Container Principal do Jogo -->
+  <div id="game-app">
+
+    <!-- TELA INICIAL (MENU PRINCIPAL) -->
+    <div id="start-screen" class="overlay-screen active">
+      <div class="menu-parchment">
+        <div class="title-badge">RPG TÁTICO 2D</div>
+        <h1 class="game-title">A LENDA DOS<br><span class="highlight-gold">SEIS LADOS</span></h1>
+        <p class="game-subtitle">Crônicas de Aethelgard: Espada, Magia, Cartas e Destino</p>
+        
+        <div class="menu-divider"></div>
+
+        <div class="menu-buttons">
+          <button id="btn-start-game" class="btn-rpg btn-primary">
+            <span class="icon">⚔️</span> INICIAR AVENTURA
+          </button>
+          <button id="btn-how-to-play" class="btn-rpg btn-secondary">
+            <span class="icon">📜</span> COMO JOGAR
+          </button>
+          <button id="btn-credits" class="btn-rpg btn-tertiary">
+            <span class="icon">🛡️</span> CRÉDITOS
+          </button>
+        </div>
+
+        <div class="quick-controls-summary">
+          <div class="ctrl-chip"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Mover</div>
+          <div class="ctrl-chip"><kbd>Botão Esquerdo</kbd> Rolar Dado D6</div>
+          <div class="ctrl-chip"><kbd>Botão Direito</kbd> Atacar Inimigo</div>
+          <div class="ctrl-chip"><kbd>ESPAÇO</kbd> Inventário</div>
+          <div class="ctrl-chip"><kbd>E</kbd> Interagir (Baús / NPCs)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DO JOGO (HUD + CANVAS) -->
+    <div id="game-view" class="game-view">
+      
+      <!-- BARRA SUPERIOR (STATUS DO JOGADOR) -->
+      <header id="top-bar" class="hud-panel top-hud">
+        <!-- Perfil e Nível -->
+        <div class="hero-profile">
+          <div class="hero-avatar">
+            <div class="avatar-frame">🧙‍♂️</div>
+            <div class="hero-level-badge" id="player-level-badge">Nv. 1</div>
+          </div>
+          <div class="hero-info">
+            <div class="hero-name-row">
+              <span class="hero-name" id="player-name">Valerius</span>
+              <span class="hero-class">Guardião dos Dados</span>
+            </div>
+            <!-- Barra de XP -->
+            <div class="bar-container xp-container" title="Experiência">
+              <div class="bar xp-bar" id="player-xp-bar" style="width: 0%;"></div>
+              <span class="bar-text" id="player-xp-text">0 / 100 XP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barras de Vida e Mana -->
+        <div class="vitals-group">
+          <!-- HP -->
+          <div class="vital-item">
+            <div class="vital-label">
+              <span class="vital-icon">❤️</span>
+              <span>VIDA (HP)</span>
+              <span class="vital-value" id="player-hp-text">100 / 100</span>
+            </div>
+            <div class="bar-container hp-container">
+              <div class="bar hp-bar" id="player-hp-bar" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- MP -->
+          <div class="vital-item">
+            <div class="vital-label">
+              <span class="vital-icon">🔮</span>
+              <span>MANA (MP)</span>
+              <span class="vital-value" id="player-mp-text">50 / 50</span>
+            </div>
+            <div class="bar-container mp-container">
+              <div class="bar mp-bar" id="player-mp-bar" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas Rápidas & Ouro -->
+        <div class="stats-group">
+          <div class="stat-badge" title="Poder de Ataque">
+            <span class="stat-icon">⚔️</span>
+            <span class="stat-num" id="player-attack-stat">18</span>
+          </div>
+          <div class="stat-badge" title="Defesa / Armadura">
+            <span class="stat-icon">🛡️</span>
+            <span class="stat-num" id="player-defense-stat">8</span>
+          </div>
+          <div class="stat-badge gold-badge" title="Ouro Coletado">
+            <span class="stat-icon">🪙</span>
+            <span class="stat-num" id="player-gold-stat">50</span>
+          </div>
+        </div>
+
+        <!-- Botões de Ação Rápida Topo -->
+        <div class="top-actions">
+          <button id="btn-toggle-inv" class="btn-hud" title="Abrir Inventário (Tecla ESPAÇO)">
+            <span class="btn-icon">🎒</span>
+            <span class="btn-label">Inventário <kbd>ESPAÇO</kbd></span>
+          </button>
+          <button id="btn-toggle-sound" class="btn-hud btn-icon-only" title="Ligar/Desligar Áudio">
+            <span id="sound-icon">🔊</span>
+          </button>
+          <button id="btn-pause-game" class="btn-hud btn-icon-only" title="Pausar Jogo (ESC)">
+            <span>⏸️</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ÁREA CENTRAL DO CANVAS (MUNDO 2D) -->
+      <main id="viewport-container" class="viewport-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Indicador de Inimigo / Alvo sob a Mira -->
+        <div id="target-reticle-hud" class="target-reticle-hud hidden">
+          <div class="target-frame">
+            <div class="target-header">
+              <span class="target-icon" id="target-icon">👾</span>
+              <span class="target-name" id="target-name">Goblin Ladino</span>
+              <span class="target-lvl" id="target-lvl">Nv. 1</span>
+            </div>
+            <div class="target-bar-wrap">
+              <div class="target-hp-bar" id="target-hp-bar" style="width: 100%;"></div>
+            </div>
+            <div class="target-subinfo">
+              <span id="target-hp-text">HP: 45/45</span>
+              <span id="target-def-text">Def: 3</span>
+              <span class="target-status-pill" id="target-status-pill">ALVO NA MIRA</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerta Flutuante / Dicas de Ação -->
+        <div id="combat-instruction-toast" class="combat-instruction-toast">
+          <span class="toast-icon">💡</span>
+          <span id="toast-message">Mova-se com <b>WASD</b>. Clique com <b>Botão Esquerdo</b> para rolar o D6!</span>
+        </div>
+
+        <!-- Dica de Interação de Objeto (Aparece perto de Baú ou NPC) -->
+        <div id="interaction-prompt" class="interaction-prompt hidden">
+          <span class="key-badge">E</span> <span id="interaction-label">Abrir Baú do Tesouro</span>
+        </div>
+      </main>
+
+      <!-- BARRA INFERIOR (CARTAS, DADO D6 E HISTÓRICO DE COMBATE) -->
+      <footer id="bottom-dock" class="hud-panel bottom-hud">
+        
+        <!-- SEÇÃO DO DADO D6 (ESQUERDA) -->
+        <div class="dice-section" id="dice-container" title="Clique com o Botão Esquerdo do Mouse para Rolar!">
+          <div class="dice-wrapper">
+            <div class="dice-3d" id="d6-cube">
+              <div class="dice-face face-1">
+                <span class="pip center"></span>
+              </div>
+              <div class="dice-face face-2">
+                <span class="pip top-left"></span>
+                <span class="pip bottom-right"></span>
+              </div>
+              <div class="dice-face face-3">
+                <span class="pip top-left"></span>
+                <span class="pip center"></span>
+                <span class="pip bottom-right"></span>
+              </div>
+              <div class="dice-face face-4">
+                <span class="pip top-left"></span>
+                <span class="pip top-right"></span>
+                <span class="pip bottom-left"></span>
+                <span class="pip bottom-right"></span>
+              </div>
+              <div class="dice-face face-5">
+                <span class="pip top-left"></span>
+                <span class="pip top-right"></span>
+                <span class="pip center"></span>
+                <span class="pip bottom-left"></span>
+                <span class="pip bottom-right"></span>
+              </div>
+              <div class="dice-face face-6">
+                <span class="pip top-left"></span>
+                <span class="pip top-right"></span>
+                <span class="pip middle-left"></span>
+                <span class="pip middle-right"></span>
+                <span class="pip bottom-left"></span>
+                <span class="pip bottom-right"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dice-meta">
+            <button id="btn-roll-dice" class="btn-roll-dice" title="Botão Esquerdo do Mouse em qualquer lugar ou aqui">
+              🎲 ROLAR D6 <span class="mouse-hint">[Botão Esquerdo]</span>
+            </button>
+            <div class="dice-result-badge" id="dice-result-badge">
+              Resultado: <strong id="dice-val-display">-</strong> <span id="dice-multiplier-tag">(x1.0)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO DE CARTAS DE HABILIDADE (CENTRO) -->
+        <div class="cards-section">
+          <div class="cards-header">
+            <span class="section-title">CARTAS DE HABILIDADE</span>
+            <span class="card-selection-guide" id="selected-card-hint">
+              👉 Selecione uma carta para armar o ataque!
+            </span>
+          </div>
+
+          <div class="cards-hand" id="cards-hand">
+            <!-- As cartas serão geradas dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- SEÇÃO DE STATUS DE ATAQUE E HISTÓRICO DE COMBATE (DIREITA) -->
+        <div class="combat-status-section">
+          <!-- Guia de Ataque -->
+          <div class="attack-checklist-panel">
+            <div class="checklist-item" id="check-card">
+              <span class="check-icon">⚪</span> <span>1. Carta Escolhida</span>
+            </div>
+            <div class="checklist-item" id="check-dice">
+              <span class="check-icon">⚪</span> <span>2. Dado D6 Rolado</span>
+            </div>
+            <div class="checklist-item" id="check-target">
+              <span class="check-icon">⚪</span> <span>3. Alvo na Mira</span>
+            </div>
+            <div class="confirm-attack-badge" id="confirm-attack-badge">
+              <span class="badge-icon">🎯</span>
+              <span class="badge-text"><b>Botão Direito</b> no Inimigo para Atacar!</span>
+            </div>
+          </div>
+
+          <!-- Histórico de Combate -->
+          <div class="combat-log-container">
+            <div class="combat-log-title">
+              <span>📜 HISTÓRICO DE COMBATE</span>
+              <button id="btn-clear-log" class="btn-mini-clear" title="Limpar Histórico">🗑️</button>
+            </div>
+            <div class="combat-log-feed" id="combat-log-feed">
+              <div class="log-entry log-system">⚔️ Bem-vindo ao reino! Explore o mapa e enfrente os perigos.</div>
+            </div>
+          </div>
+
+        </div>
+
+      </footer>
+
+    </div>
+
+    <!-- MODAL DE INVENTÁRIO E FICHA DO PERSONAGEM (ESPAÇO) -->
+    <div id="inventory-modal" class="modal-backdrop hidden">
+      <div class="parchment-window inventory-window">
+        <div class="window-header">
+          <h2>🛡️ FICHA & INVENTÁRIO DO HERÓI</h2>
+          <button class="btn-close-modal" id="btn-close-inv" title="Fechar (ESPAÇO ou ESC)">✕</button>
+        </div>
+
+        <div class="inventory-content-grid">
+          
+          <!-- Coluna Esquerda: Ficha & Equipamentos do Personagem -->
+          <div class="character-sheet-col">
+            <div class="sheet-panel">
+              <h3 class="panel-subtitle">HERÓI DE AETHELGARD</h3>
+              
+              <div class="avatar-hero-display">
+                <div class="big-avatar">🧙‍♂️</div>
+                <div class="hero-stats-overview">
+                  <div class="overview-name" id="sheet-hero-name">Valerius</div>
+                  <div class="overview-sub" id="sheet-hero-level">Nível 1 Guardião</div>
+                  <div class="overview-xp" id="sheet-hero-xp">XP: 0 / 100</div>
+                </div>
+              </div>
+
+              <!-- Atributos -->
+              <div class="attributes-list">
+                <div class="attribute-row">
+                  <span>❤️ Pontos de Vida (HP):</span>
+                  <strong id="sheet-stat-hp">100 / 100</strong>
+                </div>
+                <div class="attribute-row">
+                  <span>🔮 Pontos de Mana (MP):</span>
+                  <strong id="sheet-stat-mp">50 / 50</strong>
+                </div>
+                <div class="attribute-row">
+                  <span>⚔️ Poder de Ataque Total:</span>
+                  <strong id="sheet-stat-atk" class="text-gold">18</strong>
+                </div>
+                <div class="attribute-row">
+                  <span>🛡️ Defesa Total:</span>
+                  <strong id="sheet-stat-def" class="text-blue">8</strong>
+                </div>
+                <div class="attribute-row">
+                  <span>🪙 Ouro:</span>
+                  <strong id="sheet-stat-gold" class="text-yellow">50</strong>
+                </div>
+                <div class="attribute-row">
+                  <span>💀 Inimigos Derrotados:</span>
+                  <strong id="sheet-stat-kills">0</strong>
+                </div>
+              </div>
+
+              <!-- Slots de Equipamento -->
+              <h4 class="slots-title">EQUIPAMENTOS ATUAIS</h4>
+              <div class="equipment-slots-grid">
+                <!-- Slot Arma -->
+                <div class="equipment-slot" id="slot-weapon" data-slot="weapon">
+                  <div class="slot-label">Arma</div>
+                  <div class="slot-icon" id="slot-weapon-icon">🗡️</div>
+                  <div class="slot-item-name" id="slot-weapon-name">Espada de Ferro</div>
+                </div>
+                <!-- Slot Escudo -->
+                <div class="equipment-slot" id="slot-shield" data-slot="shield">
+                  <div class="slot-label">Escudo</div>
+                  <div class="slot-icon" id="slot-shield-icon">🛡️</div>
+                  <div class="slot-item-name" id="slot-shield-name">Broquel de Carvalho</div>
+                </div>
+                <!-- Slot Armadura -->
+                <div class="equipment-slot" id="slot-armor" data-slot="armor">
+                  <div class="slot-label">Armadura</div>
+                  <div class="slot-icon" id="slot-armor-icon">🥋</div>
+                  <div class="slot-item-name" id="slot-armor-name">Túnica de Couro</div>
+                </div>
+                <!-- Slot Acessório -->
+                <div class="equipment-slot" id="slot-accessory" data-slot="accessory">
+                  <div class="slot-label">Amuleto</div>
+                  <div class="slot-icon" id="slot-accessory-icon">📿</div>
+                  <div class="slot-item-name" id="slot-accessory-name">Pingente da Sorte</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Mochila / Inventário e Detalhes -->
+          <div class="inventory-col">
+            <!-- Categorias do Inventário -->
+            <div class="inventory-tabs">
+              <button class="inv-tab active" data-category="all">Todos</button>
+              <button class="inv-tab" data-category="equipment">Equipamentos</button>
+              <button class="inv-tab" data-category="consumable">Poções</button>
+              <button class="inv-tab" data-category="card">Cartas</button>
+              <button class="inv-tab" data-category="special">Especiais</button>
+            </div>
+
+            <!-- Grade de Itens da Mochila -->
+            <div class="inventory-grid" id="inventory-items-grid">
+              <!-- Itens preenchidos via JS -->
+            </div>
+
+            <!-- Painel de Inspeção do Item Selecionado -->
+            <div class="item-inspect-panel" id="item-inspect-panel">
+              <div class="inspect-placeholder" id="inspect-placeholder">
+                Selecione um item da mochila para ver detalhes, equipar ou consumir.
+              </div>
+              <div class="inspect-details hidden" id="inspect-details">
+                <div class="inspect-top">
+                  <div class="inspect-icon" id="inspect-icon">⚔️</div>
+                  <div>
+                    <h4 class="inspect-name" id="inspect-name">Espada de Aço Valiriano</h4>
+                    <span class="inspect-type" id="inspect-type">Arma (Equipável)</span>
+                  </div>
+                </div>
+                <p class="inspect-desc" id="inspect-desc">Uma lâmina forjada com minério estelar.</p>
+                <div class="inspect-stats" id="inspect-stats">
+                  <!-- Ex: +15 Ataque -->
+                </div>
+                <div class="inspect-actions">
+                  <button id="btn-inspect-action" class="btn-rpg btn-small btn-primary">Equipar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="window-footer">
+          <span>Pressione <kbd>ESPAÇO</kbd> para fechar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE DIÁLOGO COM NPC / EVENTOS -->
+    <div id="dialog-modal" class="modal-backdrop hidden">
+      <div class="parchment-window dialog-window">
+        <div class="dialog-speaker-header">
+          <div class="npc-portrait" id="dialog-portrait">🧙‍♂️</div>
+          <div class="npc-meta">
+            <h3 id="dialog-speaker-name">Eldrin, o Mestre dos Dados</h3>
+            <span id="dialog-speaker-title">Sábio de Aethelgard</span>
+          </div>
+        </div>
+        <div class="dialog-body-text" id="dialog-text">
+          "Saudações, forasteiro. O destino de nossas terras agora repousa sobre os seis lados sagrados."
+        </div>
+        <div class="dialog-options" id="dialog-options">
+          <button class="btn-rpg btn-primary" id="btn-dialog-close">Entendido!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE BAÚ / TESOURO ENCONTRADO -->
+    <div id="chest-modal" class="modal-backdrop hidden">
+      <div class="parchment-window chest-window">
+        <div class="chest-animation-badge">🎁</div>
+        <h2 id="chest-title">BAÚ DO TESOURO ABERTO!</h2>
+        <p id="chest-subtitle">Você encontrou itens valiosos nesta arca antiga:</p>
+        <div class="chest-loot-list" id="chest-loot-list">
+          <!-- Itens ganhos -->
+        </div>
+        <button class="btn-rpg btn-primary" id="btn-collect-chest">Coletar Tudo e Fechar</button>
+      </div>
+    </div>
+
+    <!-- MODAL DE PAUSA -->
+    <div id="pause-modal" class="modal-backdrop hidden">
+      <div class="parchment-window pause-window">
+        <h2>⏸️ JOGO PAUSADO</h2>
+        <div class="menu-divider"></div>
+        <div class="pause-menu-buttons">
+          <button id="btn-resume-game" class="btn-rpg btn-primary">RETOMAR AVENTURA</button>
+          <button id="btn-pause-how" class="btn-rpg btn-secondary">COMO JOGAR & CONTROLES</button>
+          <button id="btn-restart-game" class="btn-rpg btn-danger">REINICIAR JOGO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE COMO JOGAR -->
+    <div id="how-to-play-modal" class="modal-backdrop hidden">
+      <div class="parchment-window how-window">
+        <div class="window-header">
+          <h2>📜 GUIA DE COMBATE & REGRAS</h2>
+          <button class="btn-close-modal" id="btn-close-how">✕</button>
+        </div>
+        <div class="how-to-play-content">
+          <div class="rule-block">
+            <h3>🧭 1. Movimentação & Exploração</h3>
+            <p>Use <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd> para guiar seu herói pelo mapa. Encontre baús de tesouro e fale com NPCs pressionando <kbd>E</kbd>.</p>
+          </div>
+          <div class="rule-block">
+            <h3>🎲 2. Sistema de Dados (D6)</h3>
+            <p>Clique com o <b>Botão Esquerdo do Mouse</b> para girar o dado virtual de 6 lados. O resultado modifica diretamente sua ação:</p>
+            <ul>
+              <li><b>1:</b> Raspão (70% do dano).</li>
+              <li><b>2 - 3:</b> Golpe Normal (90% a 100% de eficácia).</li>
+              <li><b>4 - 5:</b> Golpe Devastador (125% a 150% de dano + efeitos extras).</li>
+              <li><b>6:</b> CRÍTICO SUPREMO! (200% de dano + recuperação de 5 MP).</li>
+            </ul>
+          </div>
+          <div class="rule-block">
+            <h3>⚔️ 3. Combate por Cartas e Mira</h3>
+            <p>O combate segue um ciclo tático simples:</p>
+            <ol>
+              <li><b>Selecione uma Carta</b> na sua mão inferior.</li>
+              <li><b>Gire o Dado D6</b> clicando com o Botão Esquerdo.</li>
+              <li><b>Aponte o cursor do mouse</b> sobre o inimigo desejado.</li>
+              <li><b>Clique com o Botão Direito do Mouse</b> para desferir o ataque!</li>
+            </ol>
+            <p class="warning-text">⚠️ Não é permitido atacar sem selecionar uma carta e sem possuir um inimigo sob a mira!</p>
+          </div>
+          <div class="rule-block">
+            <h3>🎒 4. Inventário & Equipamentos</h3>
+            <p>Pressione <kbd>ESPAÇO</kbd> para abrir sua mochila. Equipe armas, escudos e armaduras para aumentar seu Ataque e Defesa, ou use poções de vida e mana.</p>
+          </div>
+        </div>
+        <div class="window-footer">
+          <button class="btn-rpg btn-primary" id="btn-close-how-ok">Entendi, Vamos Jogar!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE CRÉDITOS -->
+    <div id="credits-modal" class="modal-backdrop hidden">
+      <div class="parchment-window credits-window">
+        <div class="window-header">
+          <h2>🛡️ CRÉDITOS DO PROJETO</h2>
+          <button class="btn-close-modal" id="btn-close-credits">✕</button>
+        </div>
+        <div class="credits-content">
+          <div class="credits-badge">🎲 RPG 2D TÁTICO</div>
+          <h3>A Lenda dos Seis Lados</h3>
+          <p class="credits-author">Desenvolvido com <b>HTML5 Canvas</b>, <b>CSS3</b> e <b>JavaScript Puro</b></p>
+          <div class="menu-divider"></div>
+          <ul class="credits-features-list">
+            <li>⚔️ <b>Design & Arquitetura:</b> RPG de Fantasia Medieval Clássica</li>
+            <li>🎲 <b>Mecânicas de Combate:</b> Dados D6 3D, Cartas e Turnos Táticos</li>
+            <li>🎒 <b>Sistemas:</b> Inventário Dinâmico, Equipamentos, Ficha de Atributos e Level Up</li>
+            <li>🔊 <b>Efeitos Sonoros:</b> Síntese Sonora Procedural via Web Audio API</li>
+            <li>🗺️ <b>Exploração:</b> Mapa 2.5D, Colisões, Baús, NPCs e Monstros</li>
+          </ul>
+        </div>
+        <div class="window-footer">
+          <button class="btn-rpg btn-primary" id="btn-close-credits-ok">Voltar ao Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DE DERROTA (GAME OVER) -->
+    <div id="game-over-screen" class="overlay-screen hidden">
+      <div class="menu-parchment game-over-box">
+        <div class="skull-badge">💀</div>
+        <h1 class="game-over-title">VOCÊ FOI DERROTADO</h1>
+        <p>A escuridão engoliu o Guardião dos Dados... Mas as lendas renascem!</p>
+        <div class="menu-buttons">
+          <button id="btn-retry-game" class="btn-rpg btn-primary">TENTAR NOVAMENTE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DE VITÓRIA -->
+    <div id="victory-screen" class="overlay-screen hidden">
+      <div class="menu-parchment victory-box">
+        <div class="crown-badge">👑</div>
+        <h1 class="victory-title">VITÓRIA GLORIOSA!</h1>
+        <p>Você expurgou as forças sombrias de Aethelgard e dominou o poder dos Seis Lados!</p>
+        <div class="stats-recap" id="victory-stats-recap">
+          <!-- Estatísticas finais -->
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-victory-restart" class="btn-rpg btn-primary">JOGAR NOVAMENTE</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
