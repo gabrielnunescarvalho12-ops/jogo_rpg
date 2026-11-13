@@ -810,7 +810,7 @@ class Player {
     this.game.renderInventory();
   }
 
-  update(dt, keys, map) {
+  update(dt, keys, map, joystick = { x: 0, y: 0, active: false }) {
     let dx = 0;
     let dy = 0;
 
@@ -819,13 +819,17 @@ class Player {
     if (keys['a'] || keys['A'] || keys['ArrowLeft']) dx -= 1;
     if (keys['d'] || keys['D'] || keys['ArrowRight']) dx += 1;
 
-    if (dx !== 0 && dy !== 0) {
-      // Normalização diagonal
+    // Se o analógico touch estiver ativo, substitui ou soma o vetor
+    if (joystick && joystick.active) {
+      dx = joystick.x;
+      dy = joystick.y;
+    } else if (dx !== 0 && dy !== 0) {
+      // Normalização diagonal do teclado
       dx *= 0.7071;
       dy *= 0.7071;
     }
 
-    this.isMoving = (dx !== 0 || dy !== 0);
+    this.isMoving = (Math.abs(dx) > 0.08 || Math.abs(dy) > 0.08);
 
     if (this.isMoving) {
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -1619,6 +1623,7 @@ class Game {
     this.floatingTexts = [];
     this.particles = [];
     this.state = 'START_SCREEN'; // 'START_SCREEN', 'PLAYING', 'PAUSED', 'GAME_OVER', 'VICTORY'
+    this.joystick = { x: 0, y: 0, active: false };
 
     this.init();
   }
@@ -1754,63 +1759,159 @@ class Game {
     document.getElementById('btn-retry-game').addEventListener('click', () => location.reload());
     document.getElementById('btn-victory-restart').addEventListener('click', () => location.reload());
 
-    // 5. CONTROLES TOUCH MOBILE (VIRTUAL D-PAD E AÇÕES TOUCH)
-    const setupTouchBtn = (elementId, keyChar) => {
-      const btn = document.getElementById(elementId);
-      if (!btn) return;
+    // 5. CONTROLES TOUCH MOBILE (JOYSTICK ANALÓGICO NO CANTO DIREITO & BOTÕES A, B, C NO CANTO ESQUERDO)
+    const joystickBase = document.getElementById('joystick-base');
+    const joystickKnob = document.getElementById('joystick-knob');
+    let joystickTouchId = null;
+    let joystickCenter = { x: 0, y: 0 };
+    const maxRadius = 38; // Raio máximo de deslocamento do analógico
 
-      const startMove = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.keys[keyChar] = true;
-        btn.classList.add('active');
+    const handleJoystickStart = (clientX, clientY) => {
+      const rect = joystickBase.getBoundingClientRect();
+      joystickCenter = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
       };
-
-      const stopMove = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.keys[keyChar] = false;
-        btn.classList.remove('active');
-      };
-
-      btn.addEventListener('touchstart', startMove, { passive: false });
-      btn.addEventListener('touchend', stopMove, { passive: false });
-      btn.addEventListener('touchcancel', stopMove, { passive: false });
-      btn.addEventListener('mousedown', startMove);
-      btn.addEventListener('mouseup', stopMove);
-      btn.addEventListener('mouseleave', stopMove);
+      handleJoystickMove(clientX, clientY);
     };
 
-    setupTouchBtn('btn-touch-up', 'w');
-    setupTouchBtn('btn-touch-down', 's');
-    setupTouchBtn('btn-touch-left', 'a');
-    setupTouchBtn('btn-touch-right', 'd');
+    const handleJoystickMove = (clientX, clientY) => {
+      const dx = clientX - joystickCenter.x;
+      const dy = clientY - joystickCenter.y;
+      const dist = Math.hypot(dx, dy);
 
-    // Botões de Ação Touch
-    const btnTouchAttack = document.getElementById('btn-touch-attack');
-    if (btnTouchAttack) {
-      btnTouchAttack.addEventListener('touchstart', (e) => {
+      let clampedX = dx;
+      let clampedY = dy;
+
+      if (dist > maxRadius) {
+        clampedX = (dx / dist) * maxRadius;
+        clampedY = (dy / dist) * maxRadius;
+      }
+
+      joystickKnob.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+
+      // Normaliza de -1.0 a 1.0 para movimentação fluida 360°
+      this.joystick.x = clampedX / maxRadius;
+      this.joystick.y = clampedY / maxRadius;
+      this.joystick.active = dist > 4; // Deadzone suave
+    };
+
+    const handleJoystickEnd = () => {
+      joystickKnob.style.transform = 'translate(0px, 0px)';
+      this.joystick.x = 0;
+      this.joystick.y = 0;
+      this.joystick.active = false;
+      joystickTouchId = null;
+    };
+
+    if (joystickBase) {
+      joystickBase.addEventListener('touchstart', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        this.confirmAttack();
+        if (e.changedTouches.length > 0) {
+          const touch = e.changedTouches[0];
+          joystickTouchId = touch.identifier;
+          handleJoystickStart(touch.clientX, touch.clientY);
+        }
       }, { passive: false });
-      btnTouchAttack.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.confirmAttack();
+
+      window.addEventListener('touchmove', (e) => {
+        if (joystickTouchId !== null) {
+          for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].identifier === joystickTouchId) {
+              handleJoystickMove(e.touches[i].clientX, e.touches[i].clientY);
+              break;
+            }
+          }
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', (e) => {
+        if (joystickTouchId !== null) {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+              handleJoystickEnd();
+              break;
+            }
+          }
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchcancel', (e) => {
+        if (joystickTouchId !== null) {
+          handleJoystickEnd();
+        }
+      }, { passive: false });
+
+      // Suporte a Mouse no Desktop para testes
+      let mouseDragging = false;
+      joystickBase.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        mouseDragging = true;
+        handleJoystickStart(e.clientX, e.clientY);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (mouseDragging) {
+          handleJoystickMove(e.clientX, e.clientY);
+        }
+      });
+      window.addEventListener('mouseup', () => {
+        if (mouseDragging) {
+          mouseDragging = false;
+          handleJoystickEnd();
+        }
       });
     }
 
-    const btnTouchInteract = document.getElementById('btn-touch-interact');
-    if (btnTouchInteract) {
-      btnTouchInteract.addEventListener('touchstart', (e) => {
+    // BOTÃO A: ATAQUE (E Interação com baú/NPC se perto e sem alvo)
+    const btnTouchA = document.getElementById('btn-touch-a');
+    if (btnTouchA) {
+      const triggerActionA = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        this.handleInteraction();
-      }, { passive: false });
-      btnTouchInteract.addEventListener('click', (e) => {
+        btnTouchA.classList.add('active');
+        setTimeout(() => btnTouchA.classList.remove('active'), 150);
+
+        const nearby = this.map.getNearbyInteractive(this.player);
+        if (nearby && !this.hoveredEnemy) {
+          this.handleInteraction();
+        } else {
+          this.confirmAttack();
+        }
+      };
+
+      btnTouchA.addEventListener('touchstart', triggerActionA, { passive: false });
+      btnTouchA.addEventListener('click', triggerActionA);
+    }
+
+    // BOTÃO B: GIRAR DADO D6
+    const btnTouchB = document.getElementById('btn-touch-b');
+    if (btnTouchB) {
+      const triggerActionB = (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        this.handleInteraction();
-      });
+        btnTouchB.classList.add('active');
+        setTimeout(() => btnTouchB.classList.remove('active'), 150);
+        this.dice.roll();
+      };
+
+      btnTouchB.addEventListener('touchstart', triggerActionB, { passive: false });
+      btnTouchB.addEventListener('click', triggerActionB);
+    }
+
+    // BOTÃO C: ABRIR/FECHAR INVENTÁRIO
+    const btnTouchC = document.getElementById('btn-touch-c');
+    if (btnTouchC) {
+      const triggerActionC = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        btnTouchC.classList.add('active');
+        setTimeout(() => btnTouchC.classList.remove('active'), 150);
+        this.toggleInventory();
+      };
+
+      btnTouchC.addEventListener('touchstart', triggerActionC, { passive: false });
+      btnTouchC.addEventListener('click', triggerActionC);
     }
 
     // Touch no Canvas (Mira de toque e rolagem de dado com toque)
@@ -2401,8 +2502,8 @@ class Game {
   }
 
   update(dt) {
-    // 1. Atualiza Jogador
-    this.player.update(dt, this.keys, this.map);
+    // 1. Atualiza Jogador (Teclado + Joystick Analógico Mobile)
+    this.player.update(dt, this.keys, this.map, this.joystick);
 
     // 2. Atualiza Inimigos
     this.enemies.forEach(enemy => enemy.update(dt, this.player, this.map));

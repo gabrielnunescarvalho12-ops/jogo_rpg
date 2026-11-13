@@ -1977,143 +1977,184 @@ kbd {
 }
 
 /* Exibe em telas touch ou telas menores que 1024px */
-.is-mobile-device .mobile-touch-controls,
+.is-mobile-device .mobile-touch-controls {
+  display: flex;
+}
+
+/* Media query fallback for touch devices or small screens */
 @media (max-width: 1024px), (pointer: coarse) {
   .mobile-touch-controls {
     display: flex;
   }
 }
 
-/* 1. D-PAD VIRTUAL (MOVIMENTAÇÃO) */
-.virtual-dpad {
+/* 1. BOTÕES A, B, C TOUCH (CANTO ESQUERDO) */
+.virtual-buttons-cluster {
   pointer-events: auto;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 10px 14px;
+  align-items: center;
+  touch-action: none;
+  user-select: none;
+}
+
+.touch-btn {
+  border-radius: 50%;
+  border: 2.5px solid var(--parchment-border);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  background: rgba(14, 16, 23, 0.68);
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.12s;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 6px;
-  border-radius: 50%;
-  border: 2px solid var(--parchment-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75), 0 0 12px rgba(245, 200, 66, 0.2);
-  touch-action: none;
-  user-select: none;
+  position: relative;
 }
 
-.dpad-middle-row {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.dpad-center {
-  width: 30px;
-  height: 30px;
-  background: radial-gradient(circle, #2d261e, #13100c);
-  border-radius: 50%;
-  border: 1px solid #4a3a24;
-}
-
-.dpad-btn {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(180deg, #2b231b 0%, #15110d 100%);
-  border: 1px solid var(--parchment-border);
-  border-radius: 8px;
-  color: var(--gold-primary);
-  font-size: 1.15rem;
+.touch-btn-letter {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
   font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: transform 0.1s, background 0.1s, border-color 0.1s;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.dpad-btn:active, .dpad-btn.active {
-  transform: scale(0.92);
-  background: linear-gradient(180deg, #d49b0e 0%, #7d5904 100%);
   color: #fff;
-  border-color: #ffd700;
-  box-shadow: 0 0 14px var(--gold-glow);
-}
-
-/* 2. BOTÕES DE AÇÃO TOUCH (DIREITA) */
-.virtual-actions {
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  touch-action: none;
-  user-select: none;
-}
-
-.touch-action-btn {
-  border-radius: 50%;
-  border: 2px solid var(--parchment-border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
-  transition: transform 0.15s, box-shadow 0.15s;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.touch-btn-attack {
-  width: 66px;
-  height: 66px;
-  background: radial-gradient(circle at 35% 35%, #e74c3c 0%, #922b21 70%, #5c140d 100%);
-  border-color: #ff6b6b;
-  box-shadow: 0 0 18px rgba(231, 76, 60, 0.65), 0 4px 10px rgba(0, 0, 0, 0.8);
-}
-
-.touch-btn-attack:active {
-  transform: scale(0.92);
-  box-shadow: 0 0 24px rgba(255, 71, 87, 0.9);
-}
-
-.touch-btn-interact {
-  width: 50px;
-  height: 50px;
-  background: radial-gradient(circle at 35% 35%, #f5c842 0%, #b8860b 70%, #5c4104 100%);
-  border-color: #ffd700;
-  box-shadow: 0 0 14px var(--gold-glow), 0 3px 8px rgba(0, 0, 0, 0.7);
-}
-
-.touch-btn-interact:active {
-  transform: scale(0.92);
-  box-shadow: 0 0 20px var(--gold-glow);
-}
-
-.touch-btn-icon {
-  font-size: 1.35rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   line-height: 1;
 }
 
-.touch-btn-attack .touch-btn-icon {
-  font-size: 1.75rem;
+.touch-btn-sub {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #f1e4c8;
+  text-shadow: 0 1px 2px #000;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-.touch-btn-label {
-  font-family: var(--font-title);
-  font-size: 0.58rem;
-  font-weight: 900;
+/* BOTÃO A: ATAQUE (Destaque Principal) */
+.touch-btn-a {
+  grid-column: 2;
+  grid-row: 2;
+  width: 68px;
+  height: 68px;
+  background: radial-gradient(circle at 35% 35%, #e74c3c 0%, #a92518 70%, #5c140d 100%);
+  border-color: #ff7675;
+  box-shadow: 0 0 18px rgba(231, 76, 60, 0.65), 0 5px 14px rgba(0, 0, 0, 0.8);
+}
+
+.touch-btn-a .touch-btn-letter {
+  font-size: 1.55rem;
   color: #fff;
-  text-shadow: 0 1px 2px #000;
-  margin-top: 1px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+.touch-btn-a:active, .touch-btn-a.active {
+  transform: scale(0.92);
+  box-shadow: 0 0 26px rgba(231, 76, 60, 0.95);
+}
+
+/* BOTÃO B: GIRAR DADO D6 */
+.touch-btn-b {
+  grid-column: 1;
+  grid-row: 2;
+  width: 54px;
+  height: 54px;
+  background: radial-gradient(circle at 35% 35%, #f5c842 0%, #b8860b 70%, #5c4104 100%);
+  border-color: #ffd700;
+  box-shadow: 0 0 14px var(--gold-glow), 0 4px 10px rgba(0, 0, 0, 0.7);
+}
+
+.touch-btn-b:active, .touch-btn-b.active {
+  transform: scale(0.92);
+  box-shadow: 0 0 22px var(--gold-glow-intense);
+}
+
+/* BOTÃO C: INVENTÁRIO */
+.touch-btn-c {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 52px;
+  height: 52px;
+  background: radial-gradient(circle at 35% 35%, #3498db 0%, #1f618d 70%, #0f344d 100%);
+  border-color: #74b9ff;
+  box-shadow: 0 0 14px var(--blue-mp-glow), 0 4px 10px rgba(0, 0, 0, 0.7);
+}
+
+.touch-btn-c:active, .touch-btn-c.active {
+  transform: scale(0.92);
+  box-shadow: 0 0 22px rgba(52, 152, 219, 0.9);
+}
+
+/* 2. JOYSTICK ANALÓGICO VIRTUAL (CANTO DIREITO) */
+.virtual-joystick-zone {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  touch-action: none;
+  user-select: none;
+}
+
+.joystick-base {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(30, 34, 46, 0.6) 0%, rgba(12, 14, 20, 0.85) 100%);
+  border: 2.5px solid var(--parchment-border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 14px rgba(245, 200, 66, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  touch-action: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.joystick-center-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(245, 200, 66, 0.4);
+  pointer-events: none;
+}
+
+.joystick-knob {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffd700 0%, #b8860b 60%, #5c4104 100%);
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.5), 0 0 15px var(--gold-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  cursor: grab;
+  pointer-events: none;
+  transition: transform 0.05s ease-out;
+}
+
+.knob-icon {
+  font-size: 1.45rem;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.joystick-label {
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--gold-primary);
+  text-shadow: 0 1px 3px #000;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* ==========================================================================

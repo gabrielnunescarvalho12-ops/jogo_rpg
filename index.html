@@ -44,7 +44,7 @@
           <div class="ctrl-chip"><kbd>Botão Direito</kbd> Atacar Inimigo</div>
           <div class="ctrl-chip"><kbd>ESPAÇO</kbd> Inventário</div>
           <div class="ctrl-chip"><kbd>E</kbd> Interagir (Baús / NPCs)</div>
-          <div class="ctrl-chip"><kbd>📱 Mobile</kbd> Controles Touch na Tela</div>
+          <div class="ctrl-chip"><kbd>📱 Mobile</kbd> Analógico no Canto Direito & Botões A, B, C</div>
         </div>
       </div>
     </div>
@@ -165,29 +165,36 @@
           <span class="key-badge">E</span> <span id="interaction-label">Abrir Baú do Tesouro</span>
         </div>
 
-        <!-- CONTROLES TOUCH VIRTUAIS PARA DISPOSITIVOS MÓVEIS -->
+        <!-- CONTROLES TOUCH VIRTUAIS PARA DISPOSITIVOS MÓVEIS (BOTÕES A, B, C À ESQUERDA & ANALÓGICO À DIREITA) -->
         <div id="mobile-touch-controls" class="mobile-touch-controls">
-          <!-- D-PAD VIRTUAL (MOVIMENTAÇÃO) -->
-          <div class="virtual-dpad" id="virtual-dpad">
-            <button class="dpad-btn dpad-up" id="btn-touch-up" data-dir="w" aria-label="Mover para Cima">▲</button>
-            <div class="dpad-middle-row">
-              <button class="dpad-btn dpad-left" id="btn-touch-left" data-dir="a" aria-label="Mover para Esquerda">◀</button>
-              <div class="dpad-center"></div>
-              <button class="dpad-btn dpad-right" id="btn-touch-right" data-dir="d" aria-label="Mover para Direita">▶</button>
-            </div>
-            <button class="dpad-btn dpad-down" id="btn-touch-down" data-dir="s" aria-label="Mover para Baixo">▼</button>
+          <!-- BOTÕES A, B, C (CANTO ESQUERDO) -->
+          <div class="virtual-buttons-cluster" id="virtual-buttons-cluster">
+            <!-- Botão C: Abrir/Fechar Inventário -->
+            <button class="touch-btn touch-btn-c" id="btn-touch-c" title="Inventário (C)" aria-label="Abrir Inventário">
+              <span class="touch-btn-letter">C</span>
+              <span class="touch-btn-sub">🎒 Inv</span>
+            </button>
+            <!-- Botão B: Girar o Dado D6 -->
+            <button class="touch-btn touch-btn-b" id="btn-touch-b" title="Girar Dado D6 (B)" aria-label="Girar Dado D6">
+              <span class="touch-btn-letter">B</span>
+              <span class="touch-btn-sub">🎲 D6</span>
+            </button>
+            <!-- Botão A: Atacar Inimigo -->
+            <button class="touch-btn touch-btn-a" id="btn-touch-a" title="Ataque (A)" aria-label="Executar Ataque">
+              <span class="touch-btn-letter">A</span>
+              <span class="touch-btn-sub">⚔️ Atacar</span>
+            </button>
           </div>
 
-          <!-- BOTÕES DE AÇÃO TOUCH (INTERAGIR & ATACAR) -->
-          <div class="virtual-actions" id="virtual-actions">
-            <button class="touch-action-btn touch-btn-interact" id="btn-touch-interact" title="Interagir [E]">
-              <span class="touch-btn-icon">✋</span>
-              <span class="touch-btn-label">Ação [E]</span>
-            </button>
-            <button class="touch-action-btn touch-btn-attack" id="btn-touch-attack" title="Confirmar Ataque no Inimigo">
-              <span class="touch-btn-icon">⚔️</span>
-              <span class="touch-btn-label">Atacar</span>
-            </button>
+          <!-- JOYSTICK ANALÓGICO VIRTUAL (CANTO DIREITO) -->
+          <div class="virtual-joystick-zone" id="virtual-joystick-zone">
+            <div class="joystick-base" id="joystick-base">
+              <div class="joystick-center-marker"></div>
+              <div class="joystick-knob" id="joystick-knob">
+                <span class="knob-icon">🧭</span>
+              </div>
+            </div>
+            <span class="joystick-label">Analógico</span>
           </div>
         </div>
       </main>
